@@ -1,0 +1,63 @@
+/**
+ * Created by rr on 20.04.2021.
+ */
+
+trigger AveTransactionTrigger on ave__Transaction__c (after update) {
+
+    PUBLIC STATIC FINAL STRING TRANSACTION_SUCCESS_STATUS = 'Succeed';
+
+    if(trigger.IsAfter && trigger.IsUpdate){
+        List<ContentDocumentLink> documentLinks = new List<ContentDocumentLink>();
+
+        Set<Id> templatesIds = new Set<Id>();
+        Set<Id> documentsIds = new Set<Id>();
+        for(ave__Transaction__c transaction_record : trigger.new) {
+            templatesIds.add(transaction_record.ave__Template_Configuration__c);
+            documentsIds.add(transaction_record.ave__Content_Document_Id__c);
+        }
+
+        Map<String,ave__Template_Configuration__c> templatesByIdMap = new Map<String,ave__Template_Configuration__c>
+                ([SELECT ID,ave__Object_API_Name__c FROM ave__Template_Configuration__c WHERE Id IN :templatesIds]);
+
+        Map<String,ContentDocumentLink> linkById = new Map<String,ContentDocumentLink>
+                ([SELECT ID,LinkedEntityId,ContentDocumentId FROM ContentDocumentLink WHERE ContentDocumentId IN :documentsIds]);
+
+        Map<String,String> contractLineItemsIdByDocumentId = new Map<String,String>();
+
+        Set<Id> contractLineItemsIds = new Set<Id>();
+
+        for(ContentDocumentLink link : linkById.values()){
+            Id objectId = link.linkedEntityId;
+            if(Schema.ContractLineItem.SObjectType == objectId.getSobjectType()){
+                contractLineItemsIds.add(objectId);
+                contractLineItemsIdByDocumentId.put(link.ContentDocumentId,link.LinkedEntityId);
+            }
+        }
+
+        Map<String,ContractLineItem> contractLineItemsByIds = new Map<String,ContractLineItem>
+                ([SELECT Id,ServiceContractId FROM ContractLineItem WHERE Id IN:contractLineItemsIds]);
+
+        for(ave__Transaction__c transaction_record : trigger.new){
+            if(transaction_record.ave__Status__c == TRANSACTION_SUCCESS_STATUS){
+                ContentDocumentLink link = new ContentDocumentLink();
+                String recordType = templatesByIdMap.get(transaction_record.ave__Template_Configuration__c).ave__Object_API_Name__c;
+                if(String.valueOf(Schema.ContractLineItem.SObjectType ) == recordType){
+                    link.LinkedEntityId = contractLineItemsByIds.get(
+                            contractLineItemsIdByDocumentId.get(
+                                transaction_record.ave__Content_Document_Id__c
+                            )
+                    ).ServiceContractId;
+                    link.ContentDocumentId = transaction_record.ave__Content_Document_Id__c;
+                    link.ShareType = 'V';
+                    link.Visibility = 'AllUsers';
+                    documentLinks.add(link);
+                }
+            }
+        }
+        try{
+            Database.insert(documentLinks,false);
+        }catch(Exception e){
+
+        }
+    }
+}

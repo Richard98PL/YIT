@@ -1,0 +1,44 @@
+String JSONresponse = '[ { "productName": "Mäkirinne 2 A 1", "productId": "1-2FO0YW", "projectId": "1-2FPB9A", "housingCorporation": "Asunto Oy Heinolan Kastehelmi", "active": true, "apartmentNumber": "A 1", "street": "Mäkirinne 2", "postalCode": "18100", "city": "HEINOLA", "country": "FI", "sauna": "True", "balcony": "True", "elevator": null, "status": "ForRent", "isPublished": true, "buildingType": "RowHouse", "numberOfRooms": "3", "livingArea": 76.0, "floorNumber": "1", "constructionCompletion": "2021-03-01T12:54:00", "productCurrency": null, "monthlyRent": 999.0, "rentDeposit": 9999.0, "showings": { "showingModelItems": [] }]';
+List<OutboundRentalProducts.RentalProducts> lsRP = (List<OutboundRentalProducts.RentalProducts>) JSON.deserialize(JSONresponse, List<OutboundRentalProducts.RentalProducts>.class);
+
+List<Product2> lsPrd = new List<Product2>();
+Product2 prd;
+
+for(OutboundRentalProducts.RentalProducts rp : lsRP) {
+    //set product and record type
+    prd = new Product2(
+            Name = String.IsNotBlank(rp.productName) ? rp.productName : 'name missing',
+            Product_ID__c = String.IsNotBlank(rp.productId) ? rp.productId : null,
+            Project_ID__c = String.IsNotBlank(rp.projectId) ? rp.projectId : null,
+            Housing_Corporation__c = String.IsNotBlank(rp.housingCorporation) ? rp.housingCorporation : null,
+            IsActive = (rp.active != null) ? rp.active : false,
+            Apartment_Number__c = String.IsNotBlank(rp.apartmentNumber) ? rp.apartmentNumber : null,
+            Street_Address__c = String.IsNotBlank(rp.street) ? rp.street : null,
+            Postal_Code__c = String.IsNotBlank(rp.postalCode) ? rp.postalCode : null,
+            City__c = String.IsNotBlank(rp.city) ? rp.city : null,
+            Product_Country__c = String.IsNotBlank(rp.country) ? rp.country : null,
+            Sauna__c = String.IsNotBlank(rp.sauna) ? rp.sauna : null,
+            Balcony__c = String.IsNotBlank(rp.balcony) ? rp.balcony : null,
+            Elevator__c = String.IsNotBlank(rp.elevator) ? rp.elevator : null,
+            Availability__c = String.IsNotBlank(rp.status) ? rp.status : null,
+            Publishing_Status__c = (rp.isPublished != null) ? rp.active : false,
+            Building_Type__c = String.IsNotBlank(rp.buildingType) ? rp.buildingType : null,
+            Number_of_Room__c = String.IsNotBlank(rp.numberOfRooms) ? rp.numberOfRooms : null,
+            Living_Area__c = String.valueOf(rp.livingArea),
+            Floor_Number__c = String.IsNotBlank(rp.floorNumber) ? rp.floorNumber : null,
+            Construction_Completion__c = String.IsNotBlank(rp.constructionCompletion) ? Datetime.valueof(JSON.deserialize('"' + rp.constructionCompletion + '"', Datetime.class)) : null,
+            CurrencyIsoCode = String.IsNotBlank(rp.productCurrency) ? rp.productCurrency : 'EUR',
+            Monthly_Rent__c = (Currency) rp.monthlyRent,
+            Rent_Deposit__c = (Currency) rp.rentDeposit,
+            Description = String.IsNotBlank(rp.productDescription) ? rp.productDescription : null,
+            Water_Fee__c = OutboundRentalProducts.getNormalizedWaterFee(rp.waterFee),
+            RecordTypeId = OutboundRentalProducts.rentalProductRecordTypeId
+    );
+    lsPrd.add(prd);
+}
+
+
+
+for(Product2 product : lsPrd){
+    System.debug(product.Water_Fee__c);
+}

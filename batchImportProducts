@@ -4,6 +4,7 @@ List<OutboundRentalProducts.RentalProducts> lsRP = (List<OutboundRentalProducts.
 List<Product2> lsPrd = new List<Product2>();
 Product2 prd;
 OutboundRentalProducts methodInvoker = new OutboundRentalProducts();
+System.debug('lsRP.size() ->' + lsRP.size());
 
 for(OutboundRentalProducts.RentalProducts rp : lsRP) {
     //set product and record type
@@ -42,4 +43,6 @@ for(OutboundRentalProducts.RentalProducts rp : lsRP) {
 
 for(Product2 product : lsPrd){
     System.debug(product.Water_Fee__c);
+    System.debug(product.Monthly_Rent__c);
+    System.debug(product.Rent_Deposit__c);
 }

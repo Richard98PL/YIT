@@ -3,6 +3,7 @@ List<OutboundRentalProducts.RentalProducts> lsRP = (List<OutboundRentalProducts.
 
 List<Product2> lsPrd = new List<Product2>();
 Product2 prd;
+OutboundRentalProducts methodInvoker = new OutboundRentalProducts();
 
 for(OutboundRentalProducts.RentalProducts rp : lsRP) {
     //set product and record type
@@ -31,7 +32,7 @@ for(OutboundRentalProducts.RentalProducts rp : lsRP) {
             Monthly_Rent__c = (Currency) rp.monthlyRent,
             Rent_Deposit__c = (Currency) rp.rentDeposit,
             Description = String.IsNotBlank(rp.productDescription) ? rp.productDescription : null,
-            Water_Fee__c = OutboundRentalProducts.getNormalizedWaterFee(rp.waterFee),
+            Water_Fee__c = methodInvoker.getNormalizedWaterFee(rp.waterFee),
             RecordTypeId = OutboundRentalProducts.rentalProductRecordTypeId
     );
     lsPrd.add(prd);

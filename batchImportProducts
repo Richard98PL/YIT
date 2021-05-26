@@ -1,10 +1,39 @@
-String JSONresponse = '[ { "productName": "Mäkirinne 2 A 1", "productId": "1-2FO0YW", "projectId": "1-2FPB9A", "housingCorporation": "Asunto Oy Heinolan Kastehelmi", "active": true, "apartmentNumber": "A 1", "street": "Mäkirinne 2", "postalCode": "18100", "city": "HEINOLA", "country": "SE", "sauna": "True", "balcony": "True", "elevator": null, "status": "ForRent", "isPublished": true, "buildingType": "RowHouse", "numberOfRooms": "3", "livingArea": 76.0, "floorNumber": "1", "constructionCompletion": "2021-03-01T12:54:00", "productCurrency": null, "monthlyRent": 999.0, "rentDeposit": 9999.0, "showings": { "showingModelItems": [] }, "productDescription": ".", "productItemForRent": true, "productItemForSale": false, "marketingHeadline": "", "marketingTag": null, "sizeFrom": null, "sizeTo": null, "kitchenType": "", "openInfo1": "", "openInfo2": "", "openInfo3": "", "apartmentType": "3h+k+s", "additionalInformation": "Additional information EN | Additional information FI", "floorsInApartment": null, "otherAreaSize": null, "totalAreaSize": 76.0, "apartmentAddress": "Mäkirinne 2 A 1", "finishingType": null, "numberOfRoomsFrom": 3, "numberOfRoomsTo": 3, "kitchenSize": null, "balconySize": null, "terrace": "", "fireplace": "", "terraceSize": null, "bathroomType": "", "windowsOrientation": "", "salesPrice": 73350.0, "debtShare": 171150.0, "nonDebtPrice": 244500.0, "salesPricePerSquare": 965.13158, "nonDebtPricePerSquare": 3217.10526, "plotShareRedemptionPrice": null, "decorationPackagePrice": null, "leisureHomeTotalPrice": null, "privateHomePricing": null, "maintenanceFee": 224.2, "financingFeeInterestOnly": 464.55, "totalCharges1": 688.75, "financingFeeTotal": 953.55, "totalCharges2": 1177.75, "plotShareFee": null, "waterFee": "20,00 €/hlö/kk", "otherFees": 0.0, "discountPercentageLoan": null, "loanPrice": null, "discountWhenFullPayment": null, "pricePerSqMLoan": null, "priceWhenFullPayment": null, "paymentOptions": null, "rentIncludes": "", "landlord": "institutional", "apartmentConditions": "new", "pets": "True", "rentalAgreementTerms": "Rental agreement terms EN | Rental agreement terms FI", "rentalTerms": "", "release": null, "rentalStatus": "ForRent" }]';
-List<OutboundRentalProducts.RentalProducts> lsRP = (List<OutboundRentalProducts.RentalProducts>) JSON.deserialize(JSONresponse, List<OutboundRentalProducts.RentalProducts>.class);
+List<OutboundRentalProducts.RentalProducts> lsRP  =  new List<OutboundRentalProducts.RentalProducts>();
+OutboundRentalProducts.Response retResp = new OutboundRentalProducts.Response();
+HttpRequest req = new HttpRequest();
+req.setMethod('GET');
+req.setEndpoint('http://yit-apps-api-preprod.azurewebsites.net/api/salesforce/v2/productitems?timestamp=2021-04-20');
+req.setTimeout(120000);
+req.setHeader('Accept', '*/*');
+req.setHeader('Content-Type', 'application/json');
+HttpResponse res = new Http().send(req);
+try {
+    
+    retResp.SetResponse(res.getStatusCode(), res.getStatus());
+    if (retResp.success) {
+        string resMod = '';
+        if (String.IsNotBlank (res.getBody())) {
+            List<String> resDividedByObject = res.getBody().split('"start":');
+            for (Integer i = 0; i < resDividedByObject.size(); i++) {
+                if (i == 0) {
+                    resMod += resDividedByObject[i].replaceAll('"end":', '"end1":');
+                } else {
+                    resMod += '"start":' + resDividedByObject[i].replaceAll('"end":', '"end1":');
+                }
+            }
+        }
+        lsRP = (List<OutboundRentalProducts.RentalProducts>) JSON.deserialize(res.getBody(), List<OutboundRentalProducts.RentalProducts>.class);
+    }
+}catch(Exception e) {
+    System.debug(e.getMessage());
+}
+
+
 
 List<Product2> lsPrd = new List<Product2>();
 Product2 prd;
 OutboundRentalProducts methodInvoker = new OutboundRentalProducts();
-System.debug('lsRP.size() ->' + lsRP.size());
+
 
 for(OutboundRentalProducts.RentalProducts rp : lsRP) {
     //set product and record type
@@ -32,10 +61,74 @@ for(OutboundRentalProducts.RentalProducts rp : lsRP) {
             CurrencyIsoCode = methodInvoker.getNormalizedCurrency(rp.Country),
             Monthly_Rent__c = rp.monthlyRent,
             Rent_Deposit__c = rp.rentDeposit,
+
+            UMA_For_Rent__c = methodInvoker.getNormalizedBoolean(rp.productItemForRent),
+            UMA_For_Sale__c = methodInvoker.getNormalizedBoolean(rp.productItemForSale),
+            UMA_Marketing_Headline__c = String.IsNotBlank(rp.marketingHeadline) ? rp.marketingHeadline : null,
+            UMA_Marketing_Tag__c = String.IsNotBlank(rp.marketingTag) ? rp.marketingTag : null,
+            UMA_Size_From__c = rp.sizeFrom != null ? rp.sizeFrom : null,
+            UMA_Size_To__c = rp.sizeTo != null ? rp.sizeTo : null,
+            UMA_Kitchen_Type__c = String.IsNotBlank(rp.kitchenType) ? rp.kitchenType : null,
+            UMA_Open_Info_1__c = String.IsNotBlank(rp.openInfo1) ? rp.openInfo1 : null,
+            UMA_Open_Info_2__c = String.IsNotBlank(rp.openInfo2) ? rp.openInfo2 : null,
+            UMA_Open_Info_3__c = String.IsNotBlank(rp.openInfo3) ? rp.openInfo3 : null,
+            UMA_Apartment_Type__c = String.IsNotBlank(rp.apartmentType) ? rp.apartmentType : null,
+            UMA_Additional_Information__c = String.IsNotBlank(rp.additionalInformation) ? rp.additionalInformation : null,
+            UMA_Floors_In_Apartment__c = rp.floorsInApartment != null ? rp.floorsInApartment : null,
+            UMA_Other_Area_Size__c = rp.otherAreaSize != null ? rp.otherAreaSize : null,
+            UMA_Total_Area_Size__c = rp.totalAreaSize != null ? rp.totalAreaSize : null,
+            UMA_Aparatment_Address__c = String.IsNotBlank(rp.apartmentAddress) ? rp.apartmentAddress : null,
+            UMA_Finishing_Type__c = String.IsNotBlank(rp.finishingType) ? rp.finishingType : null,
+            UMA_Number_Of_Rooms_From__c = rp.numberOfRoomsFrom != null ? rp.numberOfRoomsFrom : null,
+            UMA_Number_Of_Rooms_To__c = rp.numberOfRoomsTo != null ? rp.numberOfRoomsTo : null,
+            UMA_Kitchen_Size__c = rp.kitchenSize != null ? rp.kitchenSize : null,
+            UMA_Balcony_Size__c = rp.balconySize != null ? rp.balconySize : null,
+            UMA_Terrace__c = methodInvoker.getNormalizedBoolean(rp.terrace),
+            UMA_Fireplace__c = methodInvoker.getNormalizedBoolean(rp.fireplace),
+            UMA_Terrace_Size__c = rp.terraceSize != null ? rp.terraceSize : null,
+            UMA_Bathroom_Type__c = String.IsNotBlank(rp.bathroomType) ? rp.bathroomType : null,
+            UMA_Windows_Orientation__c = String.IsNotBlank(rp.windowsOrientation) ? rp.windowsOrientation : null,
+            UMA_Sales_Price__c = rp.salesPrice != null ? rp.salesPrice : null,
+            UMA_Debt_Share__c = rp.debtShare != null ? rp.debtShare : null,
+            UMA_Non_Debt_Price__c = rp.nonDebtPrice != null ? rp.nonDebtPrice : null,
+            UMA_Sales_Price_Per_Square__c = rp.salesPricePerSquare != null ? rp.salesPricePerSquare : null,
+            UMA_Non_Debt_Price_Per_Square__c = rp.nonDebtPricePerSquare != null ? rp.nonDebtPricePerSquare : null,
+            UMA_Plot_Share_Redemption_Price__c = rp.plotShareRedemptionPrice != null ? rp.plotShareRedemptionPrice : null,
+            UMA_Decoration_Package_Price__c = rp.decorationPackagePrice != null ? rp.decorationPackagePrice : null,
+            UMA_Leisure_Home_Total_Price__c = rp.leisureHomeTotalPrice != null ? rp.leisureHomeTotalPrice : null,
+            UMA_Private_Home_Pricing__c = rp.privateHomePricing != null ? rp.privateHomePricing : null,
+            UMA_Maintenance_Fee__c = rp.maintenanceFee != null ? rp.maintenanceFee : null,
+            UMA_Financing_Fee_Interest_Only__c = rp.financingFeeInterestOnly != null ? rp.financingFeeInterestOnly : null,
+            UMA_Total_Charges_1__c = rp.totalCharges1 != null ? rp.totalCharges1 : null,
+            UMA_Financing_Fee_Total__c = rp.financingFeeTotal != null ? rp.financingFeeTotal : null,
+            UMA_Total_Charges_2__c = rp.totalCharges2 != null ? rp.totalCharges2 : null,
+            UMA_Plot_Share_Fee__c = rp.plotShareFee != null ? rp.plotShareFee : null,
+            UMA_Other_Fees__c = rp.otherFees != null ? rp.otherFees : null,
+            UMA_Discount_Percentage_Loan__c = rp.discountPercentageLoan != null ? rp.discountPercentageLoan : null,
+            UMA_Loan_Price__c = rp.loanPrice != null ? rp.loanPrice : null,
+            UMA_Discount_When_Full_Payment__c = rp.discountWhenFullPayment != null ? rp.discountWhenFullPayment : null,
+            UMA_Price_Per_Square_Meter_Loan__c = rp.pricePerSqMLoan != null ? rp.pricePerSqMLoan : null,
+            UMA_Price_When_Full_Payment__c = rp.priceWhenFullPayment != null ? rp.priceWhenFullPayment : null,
+            UMA_Payments_Options__c = String.IsNotBlank(rp.paymentOptions) ? rp.paymentOptions : null,
+            UMA_Rent_Includes__c = String.IsNotBlank(rp.rentIncludes) ? rp.rentIncludes : null,
+            UMA_Landlord__c = String.IsNotBlank(rp.landlord) ? rp.landlord : null,
+            UMA_Pets__c = methodInvoker.getNormalizedBoolean(rp.pets),
+            UMA_Rental_Agreement_Terms__c = String.IsNotBlank(rp.rentalAgreementTerms) ? rp.rentalAgreementTerms : null,
+            UMA_Rental_Terms__c = String.IsNotBlank(rp.rentalTerms) ? rp.rentalTerms : null,
+            UMA_Release__c = String.IsNotBlank(rp.release) ? rp.release : null,
+            UMA_Rental_Status__c = String.IsNotBlank(rp.rentalStatus) ? rp.rentalStatus : null,
+            
             Description = String.IsNotBlank(rp.productDescription) ? rp.productDescription : null,
             Water_Fee__c = methodInvoker.getNormalizedWaterFee(rp.waterFee),
             RecordTypeId = OutboundRentalProducts.rentalProductRecordTypeId
     );
+
+    if((rp.productItemForRent != null) && (rp.productItemForRent == true)) {
+        prd.Product_type__c = 'Rent';
+    } else if((rp.productItemForSale != null) && (rp.productItemForSale == true)) {
+        prd.Product_type__c = 'Sale';
+    }
+    
     lsPrd.add(prd);
 }
 
@@ -46,4 +139,59 @@ for(Product2 product : lsPrd){
     System.debug(product.Monthly_Rent__c);
     System.debug(product.Rent_Deposit__c);
     System.debug(product.CurrencyIsoCode);
+    System.debug(product.UMA_For_Rent__c );
+    System.debug(product.UMA_For_Sale__c );
+    System.debug(product.UMA_Marketing_Headline__c );
+    System.debug(product.UMA_Marketing_Tag__c );
+    System.debug(product.UMA_Size_From__c );
+    System.debug(product.UMA_Size_To__c );
+    System.debug(product.UMA_Kitchen_Type__c );
+    System.debug(product.UMA_Open_Info_1__c );
+    System.debug(product.UMA_Open_Info_2__c );
+    System.debug(product.UMA_Open_Info_3__c );
+    System.debug(product.UMA_Apartment_Type__c );
+    System.debug(product.UMA_Additional_Information__c );
+    System.debug(product.UMA_Floors_In_Apartment__c );
+    System.debug(product.UMA_Other_Area_Size__c );
+    System.debug(product.UMA_Total_Area_Size__c );
+    System.debug(product.UMA_Aparatment_Address__c );
+    System.debug(product.UMA_Finishing_Type__c );
+    System.debug(product.UMA_Number_Of_Rooms_From__c );
+    System.debug(product.UMA_Number_Of_Rooms_To__c );
+    System.debug(product.UMA_Kitchen_Size__c );
+    System.debug(product.UMA_Balcony_Size__c );
+    System.debug(product.UMA_Terrace__c );
+    System.debug(product.UMA_Fireplace__c );
+    System.debug(product.UMA_Terrace_Size__c );
+    System.debug(product.UMA_Bathroom_Type__c );
+    System.debug(product.UMA_Windows_Orientation__c );
+    System.debug(product.UMA_Sales_Price__c );
+    System.debug(product.UMA_Debt_Share__c );
+    System.debug(product.UMA_Non_Debt_Price__c );
+    System.debug(product.UMA_Sales_Price_Per_Square__c );
+    System.debug(product.UMA_Non_Debt_Price_Per_Square__c );
+    System.debug(product.UMA_Plot_Share_Redemption_Price__c );
+    System.debug(product.UMA_Decoration_Package_Price__c );
+    System.debug(product.UMA_Leisure_Home_Total_Price__c );
+    System.debug(product.UMA_Private_Home_Pricing__c );
+    System.debug(product.UMA_Maintenance_Fee__c );
+    System.debug(product.UMA_Financing_Fee_Interest_Only__c );
+    System.debug(product.UMA_Total_Charges_1__c );
+    System.debug(product.UMA_Financing_Fee_Total__c );
+    System.debug(product.UMA_Total_Charges_2__c );
+    System.debug(product.UMA_Plot_Share_Fee__c );
+    System.debug(product.UMA_Other_Fees__c );
+    System.debug(product.UMA_Discount_Percentage_Loan__c );
+    System.debug(product.UMA_Loan_Price__c );
+    System.debug(product.UMA_Discount_When_Full_Payment__c );
+    System.debug(product.UMA_Price_Per_Square_Meter_Loan__c );
+    System.debug(product.UMA_Price_When_Full_Payment__c );
+    System.debug(product.UMA_Payments_Options__c );
+    System.debug(product.UMA_Rent_Includes__c );
+    System.debug(product.UMA_Landlord__c );
+    System.debug(product.UMA_Pets__c );
+    System.debug(product.UMA_Rental_Agreement_Terms__c );
+    System.debug(product.UMA_Rental_Terms__c );
+    System.debug(product.UMA_Release__c );
+    System.debug(product.UMA_Rental_Status__c );
 }

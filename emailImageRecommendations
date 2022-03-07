@@ -23,6 +23,7 @@
          set @recommendedProductId = FIELD(Row(LookupRows('ENT.Product_Recommended__c_Salesforce','Id',@productRecommendationId), 1), "Recommended_Product__c")
          set @recommendedProductRow = Row(LookupRows('ENT.Product2_Salesforce_2','Id',@recommendedProductId), 1)
          set @imageURL = FIELD(Row(LookupRows('ENT.Image__c_Salesforce','Product__c',@recommendedProductId, "Subtype__c", "imageCarousel"), 1), "URL__c")
+         set @imageURL = replace(@imageURL, "{param}", "w_450")
          set @redirectURL = FIELD(@recommendedProductRow, "URL__c")
         ENDIF
         IF NOT EMPTY(@tmpProject) THEN
@@ -48,6 +49,10 @@ debug
 %%=v(@redirectURL)=%%
 %%=v(@imageURL)=%%
 
+<div style="cursor: pointer;">
+  <a href="%%=v(@redirectURL)=%%">
 <img src="%%=v(@imageURL)=%%" alt="Italian Trulli">
+  </a>
+</div>
 
   

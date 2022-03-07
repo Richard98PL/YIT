@@ -1,0 +1,53 @@
+<script runat="server">
+  Platform.Load("Core","1.1.1");
+  function debugValue(description, value) {
+        Write(description + ': ' + (typeof value == 'object' ? Stringify(value) : value) + '<br><br>');
+    };
+  try{
+</script>
+
+<script runat="server" language="Ampscript"> 
+     var @rows,@row,@rowcount,@i
+     var @productRecommendationId, @projectRecommendationId, @areaRecommendationId
+     set @leadid = '00Q5E0000080KgpUAE'
+     set @rows=LookupRows('ENT.Recommendation__c_Salesforce','Lead__c',@leadid)
+     set @rowcount = ROWCOUNT(@rows)
+     if @rowcount > 0 then
+      for @i = 1 to @rowCount do
+        set @row = row(@rows, @i)
+        set @tmpProduct = FIELD(@row, "Product_Recommended__c"))
+        set @tmpProject = FIELD(@row, "Project_Recommended__c"))
+        set @tmpArea =    FIELD(@row, "Marketing_Location_Recommended__c"))
+        IF NOT EMPTY(@tmpProduct) THEN
+         set @productRecommendationId = @tmpProduct
+         set @recommendedProductId = FIELD(Row(LookupRows('ENT.Product_Recommended__c_Salesforce','Id',@productRecommendationId), 1), "Recommended_Product__c")
+         set @recommendedProductRow = Row(LookupRows('ENT.Product2_Salesforce_2','Id',@recommendedProductId), 1)
+         set @imageURL = FIELD(Row(LookupRows('ENT.Image__c_Salesforce','Product__c',@recommendedProductId, "Subtype__c", "imageCarousel"), 1), "URL__c")
+         set @redirectURL = FIELD(@recommendedProductRow, "URL__c")
+        ENDIF
+        IF NOT EMPTY(@tmpProject) THEN
+         set @projectRecommendationId = @tmpProject
+        ENDIF
+        IF NOT EMPTY(@tmpArea) THEN
+         set @areaRecommendationId = @tmpArea
+        ENDIF
+      next @i 
+    else
+     OutputLine("No records founds")
+    endif
+  </script>
+<script runat="server">
+    }catch(e){
+      debugValue(e);
+    }
+</script>
+
+debug
+%%=v(@productRecommendationId)=%%
+%%=v(@recommendedProductId)=%%
+%%=v(@redirectURL)=%%
+%%=v(@imageURL)=%%
+
+<img src="%%=v(@imageURL)=%%" alt="Italian Trulli">
+
+  

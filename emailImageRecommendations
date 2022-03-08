@@ -25,6 +25,13 @@
          set @imageURL = FIELD(Row(LookupRows('ENT.Image__c_Salesforce','Product__c',@recommendedProductId, "Subtype__c", "imageCarousel"), 1), "URL__c")
          set @imageURL = replace(@imageURL, "{param}", "w_450")
          set @redirectURL = FIELD(@recommendedProductRow, "URL__c")
+         set @description = FIELD(@recommendedProductRow, "PRIMA_Open_Info_1__c")
+                                  
+         SET @descriptionRows = BuildRowSetFromString(@description, ".")
+         SET @descriptionSentence1 = Field(Row(@descriptionRows, 1), 1)
+         SET @descriptionSentence2 = Field(Row(@descriptionRows, 2), 1)
+
+SET @Split2 = Field(Row(@Rows, 2), 1)
         ENDIF
         IF NOT EMPTY(@tmpProject) THEN
          set @projectRecommendationId = @tmpProject
@@ -49,9 +56,53 @@ debug
 %%=v(@redirectURL)=%%
 %%=v(@imageURL)=%%
 
-<div style="cursor: pointer;">
-  <a href="%%=v(@redirectURL)=%%">
-<img src="%%=v(@imageURL)=%%" alt="Italian Trulli">
+<div style="cursor: pointer; background-color: rgba(229,229,229,255);">
+  <a href="%%=v(@redirectURL)=%%" style="text-decoration: none;">
+    <table border="0" cellspacing="0" cellpadding="0" role="presentation" style="width: 450px; margin: 0 auto;">
+      <tr><td>
+       <div style="text-align: center;">
+        <img src="%%=v(@imageURL)=%%" alt="Italian Trulli" style="vertical-align: middle;">
+       </div>
+      </td></tr>
+      <tr><td style="margin-left: 25%; margin-right: 25%;">
+        
+      <div style="font-size: 16px; font-family: 'Helvetica Neue'; color: #DB4D69; text-align: center; text-decoration: none; background-color: #FFFFFF; border: 1px solid #DB4D69;  position: absolute; display: block; left: 50%; transform: translateY(-50%) translateX(-50%); text-align:center; white-space: nowrap; padding-top: 10px; padding-bottom: 10px; padding-left: 6px; padding-right: 6px; width:200px; min-width:200px; font-weight: bold;">
+      
+      TUTUSTU KOTEIHIN
+   
+     </div>
+    </td></tr>
+      
+       <tr><td>
+     <div style="display: block; margin: auto; background-color: white;">
+      <div style="padding-top: 9%; padding-left: 7%; padding-right: 7%; text-align: center;">
+        <p style="font-family: 'Helvetica Neue'; color: #5b727c; font-weight: bold; letter-spacing: -1px;">
+          NIITTYKUMPU - MUUTTOWALMIS
+        </p>
+       </div>
+     </div>
+    </td></tr>
+      
+      <tr><td>
+     <div style="display: block; margin: auto; background-color: white;">
+      <div style="padding-top: 4%; padding-left: 7%; padding-right: 7%; text-align: center;">
+        <p style="font-family: 'Helvetica Neue'; color: #5b727c; font-weight: bold; font-size: 22px; line-height: 140%; letter-spacing: 0px;">
+          Uusia YIT Koteja Huippupaikalla Niittykummussa
+        </p>
+       </div>
+     </div>
+    </td></tr>
+      
+    <tr><td>
+     <div style="display: block; margin: auto; background-color: white;">
+      <div style="padding-top: 5%; padding-bottom: 6%; padding-left: 7%; padding-right: 7%; text-align: center;">
+        <p style="text-decoration: none; color: #5b727c;">
+          %%=v(@descriptionSentence1)=%%.  %%=v(@descriptionSentence2)=%%.
+        </p>
+       </div>
+     </div>
+    </td></tr>
+   </table>
   </a>
 </div>
 
